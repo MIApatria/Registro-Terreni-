@@ -135,7 +135,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
     }
 }
 
-private const val CONFIG_PASSWORD = "Iloveitaly96%"
+private const val CONFIG_PASSWORD = "0000"
 
 @Composable
 private fun PasswordGateDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
