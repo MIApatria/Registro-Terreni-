@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.miapatria.registroterreni.BuildConfig
 import com.miapatria.registroterreni.MainViewModel
 import com.miapatria.registroterreni.data.repo.SyncStatus
 
@@ -106,6 +107,12 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
             }
             Text(
                 "Nota: dopo aver cambiato la configurazione Firebase, chiudi e riapri l'app.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Versione app ${BuildConfig.VERSION_NAME}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

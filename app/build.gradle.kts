@@ -3,6 +3,10 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Ogni build in CI ottiene un versionCode univoco e crescente (numero della run
+// di GitHub Actions), così Android riconosce sempre l'APK come aggiornamento.
+val ciRun = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toIntOrNull() ?: 1
+
 android {
     namespace = "com.miapatria.registroterreni"
     compileSdk = 34
@@ -11,8 +15,8 @@ android {
         applicationId = "com.miapatria.registroterreni"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = ciRun
+        versionName = "1.0.$ciRun"
         vectorDrawables { useSupportLibrary = true }
     }
 
@@ -35,6 +39,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
