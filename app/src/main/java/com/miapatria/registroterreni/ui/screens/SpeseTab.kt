@@ -1,23 +1,28 @@
 package com.miapatria.registroterreni.ui.screens
 
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material3.AssistChip
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miapatria.registroterreni.MainViewModel
@@ -36,6 +42,8 @@ import com.miapatria.registroterreni.ui.components.StatTile
 import com.miapatria.registroterreni.ui.components.TextPromptDialog
 import com.miapatria.registroterreni.ui.theme.UscitaRed
 import com.miapatria.registroterreni.util.euro
+
+private val SidebarWidth = 132.dp
 
 @Composable
 fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
@@ -50,7 +58,7 @@ fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
     val daSaldare = spese.filter { !it.saldato }.sumOf { it.importo }
     val nomiCategorie = Categorie.PREDEFINITE + categorie.map { it.nome }
 
-    Column(Modifier.fillMaxWidth()) {
+    Column(Modifier.fillMaxSize()) {
         Row(
             Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -59,45 +67,64 @@ fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
             StatTile("Da saldare", euro(daSaldare), MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
         }
 
-        Text(
-            "Aggiungi una spesa:",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 16.dp, bottom = 6.dp)
-        )
-        Row(
-            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            nomiCategorie.forEach { cat ->
-                AssistChip(
-                    onClick = { editor = Spesa(terrenoId = terreno.id, categoria = cat) },
-                    label = { Text(cat) },
-                    leadingIcon = { Icon(iconForCategoria(cat), null, Modifier.height(18.dp)) }
-                )
-            }
-            SuggestionChip(
-                onClick = { addCategoria = true },
-                label = { Text("AGGIUNGI") },
-                icon = { Icon(Icons.Filled.Add, null, Modifier.height(18.dp)) }
-            )
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        if (spese.isEmpty()) {
-            EmptyState(
-                icon = Icons.Filled.Payments,
-                title = "Nessuna spesa",
-                subtitle = "Scegli una voce qui sopra per registrare la prima spesa."
-            )
-        } else {
-            LazyColumn(
-                Modifier.fillMaxWidth(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+        Row(Modifier.fillMaxWidth().weight(1f)) {
+            // Colonna sinistra: voci di spesa, una sotto l'altra
+            Column(
+                Modifier
+                    .width(SidebarWidth)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 16.dp, end = 8.dp, bottom = 16.dp)
             ) {
-                items(spese, key = { it.id }) { s -> SpesaRow(s) { editor = s } }
+                Text(
+                    "Aggiungi spesa",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                nomiCategorie.forEach { cat ->
+                    CategoriaSideButton(
+                        nome = cat,
+                        onClick = { editor = Spesa(terrenoId = terreno.id, categoria = cat) }
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+                FilledTonalButton(
+                    onClick = { addCategoria = true },
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Filled.Add, null, Modifier.height(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Aggiungi", style = MaterialTheme.typography.labelMedium)
+                }
+            }
+
+            // Divisore verticale
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant)
+            )
+
+            // Colonna destra: elenco spese
+            Box(Modifier.weight(1f).fillMaxHeight()) {
+                if (spese.isEmpty()) {
+                    EmptyState(
+                        icon = Icons.Filled.Payments,
+                        title = "Nessuna spesa",
+                        subtitle = "Scegli una voce a sinistra per registrare la prima spesa."
+                    )
+                } else {
+                    LazyColumn(
+                        Modifier.fillMaxSize(),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(spese, key = { it.id }) { s -> SpesaRow(s) { editor = s } }
+                    }
+                }
             }
         }
     }
@@ -117,6 +144,25 @@ fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
             confirmLabel = "Aggiungi",
             onConfirm = { vm.addCategoria(it) },
             onDismiss = { addCategoria = false }
+        )
+    }
+}
+
+@Composable
+private fun CategoriaSideButton(nome: String, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(iconForCategoria(nome), null, Modifier.height(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(
+            nome,
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
         )
     }
 }

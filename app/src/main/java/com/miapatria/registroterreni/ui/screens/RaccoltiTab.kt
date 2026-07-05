@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -46,7 +47,7 @@ fun RaccoltiTab(vm: MainViewModel, terreno: Terreno) {
     val totKg = raccolti.sumOf { it.kg }
     val totEuro = raccolti.sumOf { it.totale }
 
-    Column(Modifier.fillMaxWidth()) {
+    Column(Modifier.fillMaxSize()) {
         Row(
             Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -76,11 +77,12 @@ fun RaccoltiTab(vm: MainViewModel, terreno: Terreno) {
                 icon = Icons.Filled.Agriculture,
                 title = "Nessun raccolto",
                 subtitle = "Registra la prima \"staccata\" con il pulsante qui sopra. " +
-                    "Ogni staccata può avere più linee di raccolta."
+                    "Ogni staccata può avere più linee di raccolta.",
+                modifier = Modifier.weight(1f)
             )
         } else {
             LazyColumn(
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().weight(1f),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {

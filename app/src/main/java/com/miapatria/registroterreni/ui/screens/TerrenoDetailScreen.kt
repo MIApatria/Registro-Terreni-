@@ -1,5 +1,6 @@
 package com.miapatria.registroterreni.ui.screens
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -67,9 +68,11 @@ fun TerrenoDetailScreen(vm: MainViewModel, terreno: Terreno, onBack: () -> Unit)
                     icon = { Icon(Icons.Filled.Agriculture, null) }
                 )
             }
-            when (tab) {
-                0 -> SpeseTab(vm, terreno)
-                else -> RaccoltiTab(vm, terreno)
+            Box(Modifier.weight(1f)) {
+                when (tab) {
+                    0 -> SpeseTab(vm, terreno)
+                    else -> RaccoltiTab(vm, terreno)
+                }
             }
         }
     }
