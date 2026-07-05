@@ -24,17 +24,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miapatria.registroterreni.MainViewModel
 import com.miapatria.registroterreni.data.model.Esecutori
 import com.miapatria.registroterreni.data.model.FondoMovimento
+import com.miapatria.registroterreni.data.model.Terreno
 import com.miapatria.registroterreni.ui.components.DateField
 import com.miapatria.registroterreni.ui.components.StatTile
 import com.miapatria.registroterreni.ui.theme.EntrataGreen
@@ -67,90 +65,75 @@ private sealed class Movimento(val data: Long) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FondoCassaScreen(vm: MainViewModel) {
+fun FondoCassaScreen(vm: MainViewModel, terreno: Terreno) {
     val context = LocalContext.current
-    val fondo by vm.fondo.collectAsStateWithLifecycle()
-    val spese by vm.spese.collectAsStateWithLifecycle()
-    val terreni by vm.terreni.collectAsStateWithLifecycle()
+    val fondoAll by vm.fondo.collectAsStateWithLifecycle()
+    val speseAll by vm.spese.collectAsStateWithLifecycle()
+
+    val fondo = fondoAll.filter { it.terrenoId == terreno.id }
+    val addebiti = speseAll.filter { it.terrenoId == terreno.id && it.esecutore == Esecutori.FONDOCASSA }
 
     var editor by remember { mutableStateOf<FondoMovimento?>(null) }
 
-    val nomi = terreni.associate { it.id to it.nome }
-    val addebiti = spese.filter { it.esecutore == Esecutori.FONDOCASSA }
     val saldo = fondo.sumOf { it.importo } - addebiti.sumOf { it.importo }
 
     val movimenti = (fondo.map { Movimento.Versamento(it) } +
-        addebiti.map { Movimento.Addebito("${it.etichetta} (${nomi[it.terrenoId] ?: "—"})", it.importo, it.data) })
+        addebiti.map { Movimento.Addebito(it.etichetta, it.importo, it.data) })
         .sortedByDescending { it.data }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Fondo cassa") },
-                actions = {
-                    IconButton(onClick = {
-                        Exporter.share(context, Exporter.fondoReport(context, null, saldo, fondo, addebiti, terreni))
-                    }) { Icon(Icons.Filled.PictureAsPdf, "Esporta PDF") }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { editor = FondoMovimento() },
-                icon = { Icon(Icons.Filled.Add, null) },
-                text = { Text("Aggiungi soldi") }
-            )
+    Column(Modifier.fillMaxSize().padding(16.dp)) {
+        StatTile(
+            "Saldo attuale",
+            euro(saldo),
+            if (saldo >= 0) EntrataGreen else UscitaRed,
+            Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            FilledTonalButton(onClick = { editor = FondoMovimento(terrenoId = terreno.id) }, modifier = Modifier.weight(1f)) {
+                Icon(Icons.Filled.Add, null); Spacer(Modifier.width(8.dp)); Text("Aggiungi soldi")
+            }
+            IconButton(onClick = {
+                Exporter.share(context, Exporter.fondoReport(context, null, saldo, fondo, addebiti, listOf(terreno)))
+            }) { Icon(Icons.Filled.PictureAsPdf, "Esporta PDF") }
         }
-    ) { pad ->
-        Column(Modifier.fillMaxSize().padding(pad).padding(16.dp)) {
-            StatTile(
-                "Saldo attuale",
-                euro(saldo),
-                if (saldo >= 0) EntrataGreen else UscitaRed,
-                Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(16.dp))
-            Text("Storico movimenti", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(16.dp))
+        Text("Storico movimenti", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
 
-            if (movimenti.isEmpty()) {
-                Card(
-                    Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Savings, null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(12.dp))
-                        Text("Aggiungi soldi al fondo con il pulsante in basso. Le spese pagate " +
-                            "con \"FONDOCASSA\" verranno scalate automaticamente.")
-                    }
+        if (movimenti.isEmpty()) {
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Savings, null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(12.dp))
+                    Text("Aggiungi soldi al fondo con il pulsante qui sopra. Le spese di questo terreno pagate " +
+                        "con \"FONDOCASSA\" verranno scalate automaticamente.")
                 }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(movimenti) { mov ->
-                        when (mov) {
-                            is Movimento.Versamento -> MovimentoCard(
-                                titolo = "Versamento",
-                                sottotitolo = formatDate(mov.m.data) + if (mov.m.note.isBlank()) "" else " · ${mov.m.note}",
-                                importo = mov.m.importo,
-                                positivo = true,
-                                onClick = { editor = mov.m }
-                            )
-                            is Movimento.Addebito -> MovimentoCard(
-                                titolo = "Spesa · ${mov.descr}",
-                                sottotitolo = formatDate(mov.data) + " · pagata dal fondo",
-                                importo = -mov.importo,
-                                positivo = false,
-                                onClick = null
-                            )
-                        }
+            }
+        } else {
+            LazyColumn(
+                Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(movimenti) { mov ->
+                    when (mov) {
+                        is Movimento.Versamento -> MovimentoCard(
+                            titolo = "Versamento",
+                            sottotitolo = formatDate(mov.m.data) + if (mov.m.note.isBlank()) "" else " · ${mov.m.note}",
+                            importo = mov.m.importo,
+                            positivo = true,
+                            onClick = { editor = mov.m }
+                        )
+                        is Movimento.Addebito -> MovimentoCard(
+                            titolo = "Spesa · ${mov.descr}",
+                            sottotitolo = formatDate(mov.data) + " · pagata dal fondo",
+                            importo = -mov.importo,
+                            positivo = false,
+                            onClick = null
+                        )
                     }
                 }
             }

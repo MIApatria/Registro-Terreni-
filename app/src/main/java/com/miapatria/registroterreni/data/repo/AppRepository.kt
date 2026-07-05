@@ -6,7 +6,6 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
 import com.google.firebase.firestore.Query
 import com.miapatria.registroterreni.data.model.CategoriaExtra
-import com.miapatria.registroterreni.data.model.Esecutori
 import com.miapatria.registroterreni.data.model.FondoMovimento
 import com.miapatria.registroterreni.data.model.Raccolto
 import com.miapatria.registroterreni.data.model.Spesa
@@ -102,11 +101,4 @@ class AppRepository(app: FirebaseApp) {
         if (m.id.isBlank()) fondoCol().add(m.copy(id = "")) else fondoCol().document(m.id).set(m)
     }
     fun deleteFondo(m: FondoMovimento) { if (m.id.isNotBlank()) fondoCol().document(m.id).delete() }
-
-    /** Saldo del fondo: versamenti − spese pagate con il fondo cassa. */
-    fun saldoFondo(): Double {
-        val versamenti = fondo.value.sumOf { it.importo }
-        val addebiti = spese.value.filter { it.esecutore == Esecutori.FONDOCASSA }.sumOf { it.importo }
-        return versamenti - addebiti
-    }
 }

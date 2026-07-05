@@ -19,10 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miapatria.registroterreni.MainViewModel
+import com.miapatria.registroterreni.data.model.Terreno
 import com.miapatria.registroterreni.ui.components.BarChartView
 import com.miapatria.registroterreni.ui.components.Serie
 import com.miapatria.registroterreni.ui.components.StatTile
@@ -47,10 +45,12 @@ import com.miapatria.registroterreni.util.riepiloghiPerAnno
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FlussiScreen(vm: MainViewModel) {
+fun FlussiScreen(vm: MainViewModel, terreno: Terreno) {
     val context = LocalContext.current
-    val spese by vm.spese.collectAsStateWithLifecycle()
-    val raccolti by vm.raccolti.collectAsStateWithLifecycle()
+    val speseAll by vm.spese.collectAsStateWithLifecycle()
+    val raccoltiAll by vm.raccolti.collectAsStateWithLifecycle()
+    val spese = speseAll.filter { it.terrenoId == terreno.id }
+    val raccolti = raccoltiAll.filter { it.terrenoId == terreno.id }
 
     val anni = anniDisponibili(spese, raccolti)
     var selAnni by remember { mutableStateOf(setOf<Int>()) }
@@ -62,22 +62,11 @@ fun FlussiScreen(vm: MainViewModel) {
 
     val perExport = if (selAnni.isEmpty()) riepiloghi else riepiloghi.filter { selAnni.contains(it.anno) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Flussi di cassa") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
-    ) { pad ->
-        LazyColumn(
-            Modifier.fillMaxSize().padding(pad),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+    LazyColumn(
+        Modifier.fillMaxSize(),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatTile("Entrate totali", euro(entrateTot), EntrataGreen, Modifier.weight(1f))
@@ -162,11 +151,11 @@ fun FlussiScreen(vm: MainViewModel) {
                 }
             }
         }
-    }
 }
 
 @Composable
 private fun TableHeader() {
+
     Row(Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
         Cell("Anno", 1f, weightBold = true)
         Cell("Entrate", 1.6f, weightBold = true)

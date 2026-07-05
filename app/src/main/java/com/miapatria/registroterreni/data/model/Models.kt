@@ -20,7 +20,7 @@ data class Spesa(
     var esecutore: String = "",
     var note: String = "",
     var importo: Double = 0.0,
-    var saldato: Boolean = false,
+    var saldato: Boolean = true,
     var data: Long = System.currentTimeMillis()
 ) {
     val etichetta: String
@@ -51,9 +51,10 @@ data class CategoriaExtra(
     var nome: String = ""
 )
 
-/** Un movimento del fondo cassa: versamento (importo positivo) di denaro. */
+/** Un movimento del fondo cassa di un terreno: versamento (importo positivo) di denaro. */
 data class FondoMovimento(
     @DocumentId var id: String = "",
+    var terrenoId: String = "",
     var importo: Double = 0.0,
     var note: String = "",
     var data: Long = System.currentTimeMillis()

@@ -6,15 +6,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Agriculture
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -54,7 +56,7 @@ fun TerrenoDetailScreen(vm: MainViewModel, terreno: Terreno, onBack: () -> Unit)
         }
     ) { pad ->
         Column(Modifier.fillMaxSize().padding(pad)) {
-            TabRow(selectedTabIndex = tab) {
+            ScrollableTabRow(selectedTabIndex = tab, edgePadding = 8.dp) {
                 Tab(
                     selected = tab == 0,
                     onClick = { tab = 0 },
@@ -67,11 +69,25 @@ fun TerrenoDetailScreen(vm: MainViewModel, terreno: Terreno, onBack: () -> Unit)
                     text = { Text("Raccolti") },
                     icon = { Icon(Icons.Filled.Agriculture, null) }
                 )
+                Tab(
+                    selected = tab == 2,
+                    onClick = { tab = 2 },
+                    text = { Text("Fondo") },
+                    icon = { Icon(Icons.Filled.Savings, null) }
+                )
+                Tab(
+                    selected = tab == 3,
+                    onClick = { tab = 3 },
+                    text = { Text("Flussi") },
+                    icon = { Icon(Icons.Filled.ShowChart, null) }
+                )
             }
             Box(Modifier.weight(1f)) {
                 when (tab) {
                     0 -> SpeseTab(vm, terreno)
-                    else -> RaccoltiTab(vm, terreno)
+                    1 -> RaccoltiTab(vm, terreno)
+                    2 -> FondoCassaScreen(vm, terreno)
+                    else -> FlussiScreen(vm, terreno)
                 }
             }
         }

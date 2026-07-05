@@ -14,8 +14,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Agriculture
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miapatria.registroterreni.MainViewModel
@@ -33,11 +37,13 @@ import com.miapatria.registroterreni.ui.components.EmptyState
 import com.miapatria.registroterreni.ui.components.StatTile
 import com.miapatria.registroterreni.ui.theme.EntrataGreen
 import com.miapatria.registroterreni.ui.theme.LeafLight
+import com.miapatria.registroterreni.util.Exporter
 import com.miapatria.registroterreni.util.euro
 import com.miapatria.registroterreni.util.kg
 
 @Composable
 fun RaccoltiTab(vm: MainViewModel, terreno: Terreno) {
+    val context = LocalContext.current
     val raccoltiAll by vm.raccolti.collectAsStateWithLifecycle()
     val raccolti = raccoltiAll.filter { it.terrenoId == terreno.id }
     val staccate = raccolti.groupBy { it.numero }.toSortedMap()
@@ -58,7 +64,8 @@ fun RaccoltiTab(vm: MainViewModel, terreno: Terreno) {
 
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
             FilledTonalButton(
                 onClick = {
@@ -68,6 +75,12 @@ fun RaccoltiTab(vm: MainViewModel, terreno: Terreno) {
             ) {
                 Icon(Icons.Filled.Add, null); Spacer(Modifier.width(8.dp)); Text("Nuova staccata")
             }
+            IconButton(onClick = {
+                Exporter.share(context, Exporter.raccoltiReport(context, terreno.nome, listOf(terreno), raccolti))
+            }) { Icon(Icons.Filled.PictureAsPdf, "Esporta PDF") }
+            IconButton(onClick = {
+                Exporter.share(context, Exporter.raccoltiCsv(context, listOf(terreno), raccolti))
+            }) { Icon(Icons.Filled.TableChart, "Esporta CSV") }
         }
 
         Spacer(Modifier.height(12.dp))

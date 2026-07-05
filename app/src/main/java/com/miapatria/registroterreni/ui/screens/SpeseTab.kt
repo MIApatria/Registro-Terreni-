@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,9 +19,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -29,34 +34,40 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miapatria.registroterreni.MainViewModel
 import com.miapatria.registroterreni.data.model.Categorie
+import com.miapatria.registroterreni.data.model.CategoriaExtra
 import com.miapatria.registroterreni.data.model.Spesa
 import com.miapatria.registroterreni.data.model.Terreno
+import com.miapatria.registroterreni.ui.components.ConfirmDialog
 import com.miapatria.registroterreni.ui.components.EmptyState
 import com.miapatria.registroterreni.ui.components.StatTile
 import com.miapatria.registroterreni.ui.components.TextPromptDialog
 import com.miapatria.registroterreni.ui.theme.UscitaRed
+import com.miapatria.registroterreni.util.Exporter
 import com.miapatria.registroterreni.util.euro
 
 private val SidebarWidth = 132.dp
 
 @Composable
 fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
+    val context = LocalContext.current
     val speseAll by vm.spese.collectAsStateWithLifecycle()
     val categorie by vm.categorie.collectAsStateWithLifecycle()
     val spese = speseAll.filter { it.terrenoId == terreno.id }.sortedByDescending { it.data }
 
     var editor by remember { mutableStateOf<Spesa?>(null) }
     var addCategoria by remember { mutableStateOf(false) }
+    var deleteCategoria by remember { mutableStateOf<CategoriaExtra?>(null) }
 
     val totale = spese.sumOf { it.importo }
     val daSaldare = spese.filter { !it.saldato }.sumOf { it.importo }
-    val nomiCategorie = Categorie.PREDEFINITE + categorie.map { it.nome }
 
     Column(Modifier.fillMaxSize()) {
         Row(
@@ -65,6 +76,18 @@ fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
         ) {
             StatTile("Totale spese", euro(totale), UscitaRed, Modifier.weight(1f))
             StatTile("Da saldare", euro(daSaldare), MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
+        }
+
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            IconButton(onClick = {
+                Exporter.share(context, Exporter.speseReport(context, terreno.nome, listOf(terreno), spese))
+            }) { Icon(Icons.Filled.PictureAsPdf, "Esporta PDF") }
+            IconButton(onClick = {
+                Exporter.share(context, Exporter.speseCsv(context, listOf(terreno), spese))
+            }) { Icon(Icons.Filled.TableChart, "Esporta CSV") }
         }
 
         Row(Modifier.fillMaxWidth().weight(1f)) {
@@ -82,11 +105,32 @@ fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                nomiCategorie.forEach { cat ->
+                Categorie.PREDEFINITE.forEach { cat ->
                     CategoriaSideButton(
                         nome = cat,
                         onClick = { editor = Spesa(terrenoId = terreno.id, categoria = cat) }
                     )
+                    Spacer(Modifier.height(8.dp))
+                }
+                categorie.forEach { c ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CategoriaSideButton(
+                            nome = c.nome,
+                            onClick = { editor = Spesa(terrenoId = terreno.id, categoria = c.nome) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = { deleteCategoria = c },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                Icons.Filled.Close,
+                                "Elimina voce",
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                     Spacer(Modifier.height(8.dp))
                 }
                 FilledTonalButton(
@@ -146,14 +190,22 @@ fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
             onDismiss = { addCategoria = false }
         )
     }
+    deleteCategoria?.let { c ->
+        ConfirmDialog(
+            title = "Eliminare \"${c.nome}\"?",
+            message = "La voce verrà rimossa dall'elenco. Le spese già registrate con questa voce non vengono toccate.",
+            onConfirm = { vm.deleteCategoria(c) },
+            onDismiss = { deleteCategoria = null }
+        )
+    }
 }
 
 @Composable
-private fun CategoriaSideButton(nome: String, onClick: () -> Unit) {
+private fun CategoriaSideButton(nome: String, onClick: () -> Unit, modifier: Modifier = Modifier.fillMaxWidth()) {
     OutlinedButton(
         onClick = onClick,
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 8.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier
     ) {
         Icon(iconForCategoria(nome), null, Modifier.height(16.dp))
         Spacer(Modifier.width(6.dp))

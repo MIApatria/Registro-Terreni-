@@ -155,7 +155,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun saveFondo(m: FondoMovimento) { repo?.saveFondo(m) }
     fun deleteFondo(m: FondoMovimento) { repo?.deleteFondo(m) }
-    fun saldoFondo(): Double = repo?.saldoFondo() ?: 0.0
 
     fun terrenoById(id: String): Terreno? = terreni.value.firstOrNull { it.id == id }
 }
