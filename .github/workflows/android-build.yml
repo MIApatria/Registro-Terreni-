@@ -5,6 +5,9 @@ on:
     branches: ["**"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,9 +34,24 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Upload APK
+      - name: Prepare APK
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk out/registro-terreni.apk
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: registro-terreni-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: out/registro-terreni.apk
           if-no-files-found: error
+
+      # Pubblica l'APK come Release con link diretto fisso (nessun login, nessun ZIP):
+      # https://github.com/MIApatria/Registro-Terreni-/releases/latest/download/registro-terreni.apk
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Registro Terreni 1.0.${{ github.run_number }}
+          files: out/registro-terreni.apk
+          make_latest: "true"
