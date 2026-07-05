@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.miapatria.registroterreni.data.model.Raccolto
 import com.miapatria.registroterreni.data.model.Spesa
 import com.miapatria.registroterreni.ui.components.Pill
