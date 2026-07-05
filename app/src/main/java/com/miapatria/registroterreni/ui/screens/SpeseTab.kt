@@ -1,6 +1,9 @@
 package com.miapatria.registroterreni.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,10 +19,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.TableChart
@@ -27,7 +30,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -113,25 +116,20 @@ fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
                     Spacer(Modifier.height(8.dp))
                 }
                 categorie.forEach { c ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CategoriaSideButton(
-                            nome = c.nome,
-                            onClick = { editor = Spesa(terrenoId = terreno.id, categoria = c.nome) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        IconButton(
-                            onClick = { deleteCategoria = c },
-                            modifier = Modifier.size(28.dp)
-                        ) {
-                            Icon(
-                                Icons.Filled.Close,
-                                "Elimina voce",
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                    CategoriaSideButton(
+                        nome = c.nome,
+                        onClick = { editor = Spesa(terrenoId = terreno.id, categoria = c.nome) },
+                        onLongClick = { deleteCategoria = c }
+                    )
                     Spacer(Modifier.height(8.dp))
+                }
+                if (categorie.isNotEmpty()) {
+                    Text(
+                        "Tieni premuta una voce aggiunta da te per eliminarla.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                 }
                 FilledTonalButton(
                     onClick = { addCategoria = true },
@@ -200,18 +198,34 @@ fun SpeseTab(vm: MainViewModel, terreno: Terreno) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CategoriaSideButton(nome: String, onClick: () -> Unit, modifier: Modifier = Modifier.fillMaxWidth()) {
-    OutlinedButton(
-        onClick = onClick,
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 8.dp),
-        modifier = modifier
+private fun CategoriaSideButton(
+    nome: String,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null
+) {
+    val shape = RoundedCornerShape(20.dp)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(iconForCategoria(nome), null, Modifier.height(16.dp))
-        Spacer(Modifier.width(6.dp))
+        Icon(
+            iconForCategoria(nome),
+            null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.width(8.dp))
         Text(
             nome,
             style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)

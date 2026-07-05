@@ -14,20 +14,27 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.miapatria.registroterreni.BuildConfig
@@ -39,6 +46,7 @@ import com.miapatria.registroterreni.data.repo.SyncStatus
 fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
     val status by vm.status.collectAsStateWithLifecycle()
     val user by vm.user.collectAsStateWithLifecycle()
+    var askPassword by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -100,7 +108,7 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
                 Spacer(Modifier.height(0.dp))
                 Text("  Esci")
             }
-            OutlinedButton(onClick = { vm.clearConfig() }, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = { askPassword = true }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Settings, null)
                 Spacer(Modifier.height(0.dp))
                 Text("  Cambia configurazione Firebase")
@@ -118,4 +126,51 @@ fun SettingsScreen(vm: MainViewModel, onBack: () -> Unit) {
             )
         }
     }
+
+    if (askPassword) {
+        PasswordGateDialog(
+            onConfirm = { vm.clearConfig() },
+            onDismiss = { askPassword = false }
+        )
+    }
+}
+
+private const val CONFIG_PASSWORD = "Iloveitaly96%"
+
+@Composable
+private fun PasswordGateDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    var pwd by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Password richiesta") },
+        text = {
+            Column {
+                Text("Inserisci la password per cambiare la configurazione Firebase.")
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = pwd,
+                    onValueChange = { pwd = it; error = false },
+                    label = { Text("Password") },
+                    singleLine = true,
+                    isError = error,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (error) {
+                    Text(
+                        "Password errata",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                if (pwd == CONFIG_PASSWORD) { onConfirm(); onDismiss() } else error = true
+            }) { Text("Conferma") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Annulla") } }
+    )
 }
