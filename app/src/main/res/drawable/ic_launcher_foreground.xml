@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Sun -->
+    <path
+        android:fillColor="#FFD166"
+        android:pathData="M54,30m-13,0a13,13 0,1 1,26 0a13,13 0,1 1,-26 0" />
+    <!-- Mesa / mountains -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,74 L44,54 L56,68 L66,50 L82,74 Z" />
+    <!-- Road -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M46,80 L62,80 L74,84 L34,84 Z" />
+    <path
+        android:fillColor="#C1440E"
+        android:pathData="M52,80 L56,80 L55,84 L53,84 Z" />
+</vector>

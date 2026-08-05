@@ -1,0 +1,63 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - claude/android-schedule-app-h3ub87
+    paths-ignore:
+      - 'README.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build debug APK
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Rename APK
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk "out/USA-2026-cronoprogramma.apk"
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: USA-2026-cronoprogramma-apk
+          path: out/USA-2026-cronoprogramma.apk
+          if-no-files-found: error
+
+      - name: Publish/update "latest" release with the APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: USA 2026 · APK più recente
+          body: |
+            APK dell'app **Cronoprogramma USA 2026** (build automatica).
+
+            **Come installare sul telefono:**
+            1. Apri questa pagina dal telefono e scarica `USA-2026-cronoprogramma.apk`.
+            2. Aprilo: Android chiederà di consentire l'installazione da questa fonte → **Consenti**.
+            3. Installa e apri l'app.
+
+            (È una build "debug" non firmata per lo store: si installa direttamente, senza Play Store.)
+          files: out/USA-2026-cronoprogramma.apk
+          make_latest: true
