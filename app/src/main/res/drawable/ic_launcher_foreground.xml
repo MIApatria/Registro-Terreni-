@@ -3,19 +3,14 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Sun -->
-    <path
-        android:fillColor="#FFD166"
-        android:pathData="M54,30m-13,0a13,13 0,1 1,26 0a13,13 0,1 1,-26 0" />
-    <!-- Mesa / mountains -->
+    <!-- Leaf / sprout emblem centred in the adaptive safe zone -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M28,74 L44,54 L56,68 L66,50 L82,74 Z" />
-    <!-- Road -->
+        android:pathData="M54,32 C64,32 72,40 72,52 C72,64 64,72 54,72 C54,60 54,44 54,32 Z" />
+    <path
+        android:fillColor="#CDEBBB"
+        android:pathData="M54,32 C44,32 36,40 36,52 C36,64 44,72 54,72 C54,60 54,44 54,32 Z" />
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M46,80 L62,80 L74,84 L34,84 Z" />
-    <path
-        android:fillColor="#C1440E"
-        android:pathData="M52,80 L56,80 L55,84 L53,84 Z" />
+        android:pathData="M52,54 L56,54 L56,82 L52,82 Z" />
 </vector>
